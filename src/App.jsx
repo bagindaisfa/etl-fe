@@ -6,17 +6,16 @@ import {
 } from 'react-router-dom';
 import AppLayout from './Layout';
 import Login from './page/login';
+import UserManagement from './page/userManagement';
+import Import from './page/import';
+import ExcelMapping from './page/excelMapping';
 
 function HomePage() {
   return <p>Welcome to the Home Page</p>;
 }
 
-function ProfilePage() {
-  return <p>User Profile</p>;
-}
-
-function SettingsPage() {
-  return <p>Settings Page</p>;
+function DataMapping() {
+  return <p>Data Mapping</p>;
 }
 
 function App() {
@@ -30,7 +29,7 @@ function App() {
 
         {/* Protected Routes (Inside Layout) */}
         <Route
-          path="/dashboard"
+          path="/data-view"
           element={
             <AppLayout>
               <HomePage />
@@ -38,21 +37,47 @@ function App() {
           }
         />
         <Route
-          path="/profile"
+          path="/data-mapping"
           element={
             <AppLayout>
-              <ProfilePage />
+              <DataMapping />
             </AppLayout>
           }
         />
         <Route
-          path="/settings"
+          path="/data-mapping/excel_mapping"
           element={
             <AppLayout>
-              <SettingsPage />
+              <ExcelMapping />
             </AppLayout>
           }
         />
+        <Route
+          path="/data-mapping/data-view-mapping"
+          element={
+            <AppLayout>
+              <DataMapping />
+            </AppLayout>
+          }
+        />
+
+        <Route
+          path="/import"
+          element={
+            <AppLayout>
+              <Import />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/user"
+          element={
+            <AppLayout>
+              <UserManagement />
+            </AppLayout>
+          }
+        />
+        <Route path="/logout" element={<AppLayout></AppLayout>} />
 
         {/* Catch-all route for 404 */}
         <Route path="*" element={<Navigate to="/login" />} />

@@ -1,45 +1,180 @@
-import { Layout, Menu } from 'antd';
-import { UserOutlined, HomeOutlined, SettingOutlined } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Layout, Menu, message, Spin } from 'antd';
+import {
+  UserOutlined,
+  HomeOutlined,
+  LogoutOutlined,
+  DatabaseOutlined,
+  ImportOutlined,
+} from '@ant-design/icons';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import api from './services/axiosService';
 
-const { Header, Sider, Content, Footer } = Layout;
+const { Header, Sider, Content } = Layout;
+const { SubMenu } = Menu;
 
 function AppLayout({ children }) {
+  const navigate = useNavigate();
+  const location = useLocation(); // Get the current route
+  const [loadingLogout, setLoadingLogout] = useState(false);
+  const [headerTitle, setHeaderTitle] = useState('Data View'); // Default title
+
+  useEffect(() => {
+    let selectedTitle = 'Data View'; // Default title
+
+    const selected = menuItems.find((item) => {
+      if (item.path === location.pathname) {
+        selectedTitle = item.title;
+        return true;
+      }
+      const child = item.children?.find(
+        (child) => child.path === location.pathname
+      );
+      if (child) {
+        selectedTitle = `${item.title} / ${child.title}`;
+        return true;
+      }
+      return false;
+    });
+
+    if (selected) setHeaderTitle(selectedTitle);
+  }, [location.pathname]);
+
+  const handleLogout = async () => {
+    setLoadingLogout(true);
+    try {
+      await api.post('/logout'); // 🔥 Calls the backend logout API
+      message.success('Logged out successfully!');
+      sessionStorage.removeItem('id_user');
+      sessionStorage.removeItem('username');
+      sessionStorage.removeItem('password');
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      message.error('Logout failed. Try again.');
+    } finally {
+      setLoadingLogout(false);
+    }
+  };
+
+  // Define menu items with title updates
+  const menuItems = [
+    {
+      key: '1',
+      path: '/data-view',
+      icon: <HomeOutlined />,
+      title: 'Data View',
+    },
+    {
+      key: '2',
+      icon: <DatabaseOutlined />,
+      title: 'Data Mapping',
+      children: [
+        {
+          key: '2-1',
+          path: '/data-mapping/excel_mapping',
+          title: 'Excel',
+        },
+        {
+          key: '2-2',
+          path: '/data-mapping/data-view-mapping',
+          title: 'Data View',
+        },
+      ],
+    },
+    {
+      key: '3',
+      path: '/import',
+      icon: <ImportOutlined />,
+      title: 'Import Data',
+    },
+    {
+      key: '4',
+      path: '/user',
+      icon: <UserOutlined />,
+      title: 'User Management',
+    },
+    {
+      key: '5',
+      path: '/logout',
+      icon: <LogoutOutlined />,
+      title: 'Logging Out...',
+    },
+  ];
+
   return (
     <Layout style={{ minHeight: '100vh', width: '100vw' }}>
-      {' '}
       <Sider collapsible>
         <div
           className="logo"
-          style={{ color: 'white', textAlign: 'center', padding: 16 }}
+          style={{
+            color: 'white',
+            backgroundColor: '#17183a',
+            textAlign: 'center',
+            padding: 16,
+          }}
         >
-          My App
+          CORE LMB
         </div>
-        <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
-          <Menu.Item key="1" icon={<HomeOutlined />}>
-            <Link to="/">Home</Link>
-          </Menu.Item>
-          <Menu.Item key="2" icon={<UserOutlined />}>
-            <Link to="/profile">Profile</Link>
-          </Menu.Item>
-          <Menu.Item key="3" icon={<SettingOutlined />}>
-            <Link to="/settings">Settings</Link>
-          </Menu.Item>
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[location.pathname]}
+          onClick={({ key }) => {
+            let selectedTitle = '';
+
+            const selected = menuItems.find((item) => {
+              if (item.key === key) {
+                selectedTitle = item.title; // Parent title
+                return true;
+              }
+              const child = item.children?.find((child) => child.key === key);
+              if (child) {
+                selectedTitle = `${item.title} / ${child.title}`; // Parent / Child
+                return true;
+              }
+              return false;
+            });
+
+            if (selected) setHeaderTitle(selectedTitle);
+          }}
+        >
+          {menuItems.map((item) =>
+            item.children ? (
+              <SubMenu key={item.key} icon={item.icon} title={item.title}>
+                {item.children.map((child) => (
+                  <Menu.Item key={child.key}>
+                    <Link to={child.path}>{child.title}</Link>
+                  </Menu.Item>
+                ))}
+              </SubMenu>
+            ) : item.key === '5' ? (
+              <Menu.Item key={item.key} icon={item.icon} onClick={handleLogout}>
+                {loadingLogout ? <Spin size="small" /> : 'Logout'}
+              </Menu.Item>
+            ) : (
+              <Menu.Item key={item.key} icon={item.icon}>
+                <Link to={item.path}>{item.title}</Link>
+              </Menu.Item>
+            )
+          )}
         </Menu>
       </Sider>
+
       {/* Main Layout */}
       <Layout style={{ flex: 1 }}>
-        {' '}
         <Header
           style={{
             background: '#fff',
             padding: 0,
-            textAlign: 'center',
+            textAlign: 'left',
             width: '100%',
+            marginLeft: 15,
           }}
         >
-          <h1 style={{ margin: 0 }}>Dashboard</h1>
+          <h2 style={{ marginLeft: 10, marginTop: 5 }}>{headerTitle}</h2>
         </Header>
+
         {/* Content */}
         <Content
           style={{ margin: '16px', padding: 24, background: '#fff', flex: 1 }}

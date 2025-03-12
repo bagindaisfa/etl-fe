@@ -1,23 +1,30 @@
-import React from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/axiosService';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Form, Input } from 'antd';
+import { Button, Form, Input, message } from 'antd';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Login = () => {
-  const onFinish = async (values) => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/login`, values);
-      message.success('Login successful!');
-      console.log('Response:', response.data);
+  const navigate = useNavigate();
+  const [loadingLogin, setLoadingLogin] = useState(false);
 
-      // Store token (if returned from API)
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-      }
+  const onFinish = async (values) => {
+    setLoadingLogin(true);
+    try {
+      const response = await api.post('/login', values);
+      setLoadingLogin(false);
+      message.success('Login successful!');
+      const { id, username, password, is_super_admin } = response.data.user[0];
+      sessionStorage.setItem('id_user', id);
+      sessionStorage.setItem('username', username);
+      sessionStorage.setItem('password', password);
+      sessionStorage.setItem('is_super_admin', is_super_admin);
+      navigate('/data-view');
     } catch (error) {
       console.error('Login error:', error);
+      setLoadingLogin(false);
       message.error(
         error.response?.data?.message || 'Login failed. Try again.'
       );
@@ -44,7 +51,9 @@ const Login = () => {
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
         }}
       >
-        <h2 style={{ textAlign: 'center', marginBottom: 24 }}>Login</h2>
+        <h2 style={{ textAlign: 'center', marginBottom: 24, color: 'black' }}>
+          Login
+        </h2>
         <Form
           name="login"
           initialValues={{ remember: true }}
@@ -67,7 +76,12 @@ const Login = () => {
             />
           </Form.Item>
           <Form.Item>
-            <Button block type="primary" htmlType="submit">
+            <Button
+              block
+              type="primary"
+              htmlType="submit"
+              loading={loadingLogin}
+            >
               Log in
             </Button>
           </Form.Item>
