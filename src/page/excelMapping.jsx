@@ -17,6 +17,7 @@ const generateHeaderCells = () => {
 
 const ExcelMapping = () => {
   const [form] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
   const [tableNames, setTableNames] = useState([]);
   const [columnNames, setColumnNames] = useState([]);
   const [headerCells] = useState(generateHeaderCells());
@@ -25,14 +26,28 @@ const ExcelMapping = () => {
     { key: Date.now(), header_cell: '', column_name: '' },
   ]);
 
+  const success = (message) => {
+    messageApi.open({
+      type: 'success',
+      content: message,
+    });
+  };
+
+  const error = (message) => {
+    messageApi.open({
+      type: 'error',
+      content: message,
+    });
+  };
+
   useEffect(() => {
     const fetchTableNames = async () => {
       try {
         const response = await api.get('/table_name');
         setTableNames(response.data); // Assuming response is an array of table names
-      } catch (error) {
-        message.error('Failed to load table names');
-        console.error('Table names fetch error:', error);
+      } catch (err) {
+        error('Failed to load table names');
+        console.error('Table names fetch error:', err);
       }
     };
 
@@ -43,8 +58,8 @@ const ExcelMapping = () => {
     try {
       const res = await api.get(`/master_column_name/${tableName}`);
       setColumnNames(res.data);
-    } catch (error) {
-      message.error('Failed to load column names');
+    } catch (err) {
+      error('Failed to load column names');
     }
   };
 
@@ -70,85 +85,93 @@ const ExcelMapping = () => {
         table_name: values.table_name,
         detail: values.mappings,
       });
-      message.success('Data mapped successfully!');
+      success('Data mapped successfully!');
       setSelectedTable(null);
       form.resetFields();
-    } catch (error) {
-      message.error('Failed to submit mapping');
+    } catch (err) {
+      error('Failed to submit mapping');
     }
   };
 
   return (
-    <Form form={form} layout="vertical" onFinish={onFinish}>
-      <Form.Item
-        name="table_name"
-        label="Table Name"
-        rules={[{ required: true }]}
-      >
-        <Select
-          showSearch
-          placeholder="Select a table"
-          onChange={handleTableChange}
+    <>
+      {contextHolder}
+      <Form form={form} layout="vertical" onFinish={onFinish}>
+        <Form.Item
+          name="table_name"
+          label="Table Name"
+          rules={[{ required: true }]}
         >
-          {tableNames.map(({ id, table_name }) => (
-            <Option key={id} value={table_name}>
-              {table_name}
-            </Option>
-          ))}
-        </Select>
-      </Form.Item>
+          <Select
+            showSearch
+            placeholder="Select a table"
+            onChange={handleTableChange}
+          >
+            {tableNames.map(({ id, table_name }) => (
+              <Option key={id} value={table_name}>
+                {table_name}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
 
-      {mappingRows.map((row, index) => (
-        <Row gutter={16} key={row.key} align="middle">
-          <Col span={8}>
-            <Form.Item
-              name={['mappings', index, 'header_cell']}
-              label="Header Cell"
-              rules={[{ required: true }]}
-            >
-              <Select showSearch placeholder="Select header">
-                {headerCells.map((cell) => (
-                  <Option key={cell} value={cell}>
-                    {cell}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item
-              name={['mappings', index, 'column_name']}
-              label="Column Name"
-              rules={[{ required: true }]}
-            >
-              <Select
-                showSearch
-                placeholder="Select column"
-                disabled={!selectedTable}
+        {mappingRows.map((row, index) => (
+          <Row gutter={16} key={row.key} align="middle">
+            <Col span={8}>
+              <Form.Item
+                name={['mappings', index, 'header_cell']}
+                label="Header Cell"
+                rules={[{ required: true }]}
               >
-                {columnNames.map(({ id, column_name }) => (
-                  <Option key={id} value={column_name}>
-                    {column_name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={4}>
-            <Button type="danger" onClick={() => handleRemoveRow(row.key)}>
-              Remove
-            </Button>
-          </Col>
-        </Row>
-      ))}
+                <Select showSearch placeholder="Select header">
+                  {headerCells.map((cell) => (
+                    <Option key={cell} value={cell}>
+                      {cell}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name={['mappings', index, 'column_name']}
+                label="Column Name"
+                rules={[{ required: true }]}
+              >
+                <Select
+                  showSearch
+                  placeholder="Select column"
+                  disabled={!selectedTable}
+                >
+                  {columnNames.map(({ id, column_name }) => (
+                    <Option key={id} value={column_name}>
+                      {column_name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={4}>
+              <Button type="danger" onClick={() => handleRemoveRow(row.key)}>
+                Remove
+              </Button>
+            </Col>
+          </Row>
+        ))}
 
-      <Button type="dashed" onClick={handleAddRow} block>
-        Add Row
-      </Button>
-      <Button type="primary" htmlType="submit" block style={{ marginTop: 16 }}>
-        Submit
-      </Button>
-    </Form>
+        <Button type="dashed" onClick={handleAddRow} block>
+          Add Row
+        </Button>
+        <Button
+          type="primary"
+          htmlType="submit"
+          block
+          style={{ marginTop: 16 }}
+        >
+          Submit
+        </Button>
+      </Form>
+    </>
   );
 };
 

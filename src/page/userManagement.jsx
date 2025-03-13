@@ -7,10 +7,25 @@ const { Title } = Typography;
 const UserManagement = () => {
   const [form] = Form.useForm();
   const [formInsert] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
   const [loadingUpdate, setLoadingUpdate] = useState(false);
   const [loadingNew, setLoadingNew] = useState(false);
   const userId = sessionStorage.getItem('id_user');
   const superAdmin = sessionStorage.getItem('is_super_admin') === 'true';
+
+  const success = (message) => {
+    messageApi.open({
+      type: 'success',
+      content: message,
+    });
+  };
+
+  const error = (message) => {
+    messageApi.open({
+      type: 'error',
+      content: message,
+    });
+  };
 
   useEffect(() => {
     form.setFieldsValue({
@@ -22,46 +37,43 @@ const UserManagement = () => {
     setLoadingUpdate(true);
     try {
       const response = await api.put(`/users/${userId}`, values);
-      message.success('Update successful!');
+      success('Update successful!');
       setLoadingUpdate(false);
-    } catch (error) {
-      console.error('Update error:', error);
+    } catch (err) {
+      console.error('Update error:', err);
       setLoadingUpdate(false);
-      message.error(
-        error.response?.data?.message || 'Update failed. Try again.'
-      );
+      error(error.response?.data?.message || 'Update failed. Try again.');
     }
   };
 
   const onFinishFailedUpdate = (errorInfo) => {
-    message.error('Failed:', errorInfo);
+    error('Failed:', errorInfo);
   };
 
   const onFinishNew = async (values) => {
     setLoadingNew(true);
     try {
       const response = await api.post(`/users/register`, values);
-      message.success('Create User successful!');
+      success('Create User successful!');
       setLoadingNew(false);
       formInsert.setFieldsValue({
         ['username']: '',
         ['password']: '',
       });
-    } catch (error) {
-      console.error('Create User error:', error);
+    } catch (err) {
+      console.error('Create User error:', err);
       setLoadingNew(false);
-      message.error(
-        error.response?.data?.message || 'Create User failed. Try again.'
-      );
+      error(error.response?.data?.message || 'Create User failed. Try again.');
     }
   };
 
   const onFinishFailedNew = (errorInfo) => {
-    message.error('Failed:', errorInfo);
+    error('Failed:', errorInfo);
   };
 
   return (
     <>
+      {contextHolder}
       <Title level={4}>Update User</Title>
       <Form
         form={form}
