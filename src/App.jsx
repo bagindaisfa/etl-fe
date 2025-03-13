@@ -9,6 +9,7 @@ import Login from './page/login';
 import UserManagement from './page/userManagement';
 import Import from './page/import';
 import ExcelMapping from './page/excelMapping';
+import DataViewMapping from './page/dataViewMapping';
 
 function HomePage() {
   return <p>Welcome to the Home Page</p>;
@@ -56,7 +57,7 @@ function App() {
           path="/data-mapping/data-view-mapping"
           element={
             <AppLayout>
-              <DataMapping />
+              <DataViewMapping />
             </AppLayout>
           }
         />
