@@ -12,15 +12,15 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       if (error.response.status === 401) {
-        error('Session expired. Redirecting to login...');
+        console.error('Session expired. Redirecting to login...');
 
         // Redirect to login page
         window.location.href = '/login'; // or use react-router navigate if inside a component
       } else {
-        error(error.response.data.message || 'Something went wrong');
+        console.error(error.response.data.message || 'Something went wrong');
       }
     } else {
-      error('Network error. Please try again.');
+      console.error('Network error. Please try again.');
     }
 
     return Promise.reject(error);
