@@ -10,14 +10,7 @@ import UserManagement from './page/userManagement';
 import Import from './page/import';
 import ExcelMapping from './page/excelMapping';
 import DataViewMapping from './page/dataViewMapping';
-
-function HomePage() {
-  return <p>Welcome to the Home Page</p>;
-}
-
-function DataMapping() {
-  return <p>Data Mapping</p>;
-}
+import DataView from './page/dataView';
 
 function App() {
   return (
@@ -33,18 +26,11 @@ function App() {
           path="/data-view"
           element={
             <AppLayout>
-              <HomePage />
+              <DataView />
             </AppLayout>
           }
         />
-        <Route
-          path="/data-mapping"
-          element={
-            <AppLayout>
-              <DataMapping />
-            </AppLayout>
-          }
-        />
+        <Route path="/data-mapping" element={<AppLayout></AppLayout>} />
         <Route
           path="/data-mapping/excel_mapping"
           element={

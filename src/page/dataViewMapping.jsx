@@ -125,6 +125,7 @@ const DataViewMapping = () => {
                           showSearch
                           placeholder="Select data index"
                           disabled={!tableName}
+                          key={`data_index ${field.name + 1}`}
                         >
                           {columnNames.map(({ id, column_name }) => (
                             <Option key={id} value={column_name}>
@@ -182,7 +183,8 @@ const DataViewMapping = () => {
                                   <Select
                                     showSearch
                                     placeholder="Select data index"
-                                    disabled={!selectedTable}
+                                    disabled={!tableName}
+                                    key={`data_index ${child.name + 1}`}
                                   >
                                     {columnNames.map(({ id, column_name }) => (
                                       <Option key={id} value={column_name}>
@@ -245,7 +247,10 @@ const DataViewMapping = () => {
                                             <Select
                                               showSearch
                                               placeholder="Select data index"
-                                              disabled={!selectedTable}
+                                              disabled={!tableName}
+                                              key={`data_index ${
+                                                subChild.name + 1
+                                              }`}
                                             >
                                               {columnNames.map(
                                                 ({ id, column_name }) => (
