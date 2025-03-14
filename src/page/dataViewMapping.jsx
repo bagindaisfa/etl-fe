@@ -62,6 +62,7 @@ const DataViewMapping = () => {
         headers: values.headers,
       });
       success('Table headers added successfully');
+      form.resetFields();
     } catch (err) {
       error('Failed to add table headers');
       console.error('Add table headers error:', err);

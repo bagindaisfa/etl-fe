@@ -15,6 +15,7 @@ const { SubMenu } = Menu;
 
 function AppLayout({ children }) {
   const [messageApi, contextHolder] = message.useMessage();
+  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation(); // Get the current route
   const [loadingLogout, setLoadingLogout] = useState(false);
@@ -121,7 +122,11 @@ function AppLayout({ children }) {
     <>
       {contextHolder}
       <Layout style={{ minHeight: '100vh', width: '100vw' }}>
-        <Sider collapsible>
+        <Sider
+          collapsible
+          collapsed={collapsed}
+          onCollapse={(value) => setCollapsed(value)}
+        >
           <div
             className="logo"
             style={{

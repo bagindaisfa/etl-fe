@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Select, Pagination, Form, Button, DatePicker } from 'antd';
+import {
+  Table,
+  Select,
+  Pagination,
+  Form,
+  Button,
+  DatePicker,
+  message,
+} from 'antd';
 import api from '../services/axiosService';
 import dayjs from 'dayjs';
 
@@ -7,6 +15,7 @@ const { Option } = Select;
 const { RangePicker } = DatePicker;
 
 const DataView = () => {
+  const [messageApi, contextHolder] = message.useMessage();
   const [tableName, setTableName] = useState(null);
   const [tableOptions, setTableOptions] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -22,6 +31,21 @@ const DataView = () => {
     start_date: null,
     end_date: null,
   });
+  const dateFormat = 'YYYY-MM-DD';
+
+  const success = (message) => {
+    messageApi.open({
+      type: 'success',
+      content: message,
+    });
+  };
+
+  const error = (message) => {
+    messageApi.open({
+      type: 'error',
+      content: message,
+    });
+  };
 
   // Fetch table names
   useEffect(() => {
@@ -37,12 +61,29 @@ const DataView = () => {
       api
         .get(`/table_headers/${tableName}`)
         .then((res) => {
-          const formattedColumns = res.data.map((col) => ({
-            title: col.title,
-            dataIndex: col.dataIndex,
-            width: col.width || 150,
-            sorter: col.sorter === 'true',
-          }));
+          const formatColumns = (headers) => {
+            return headers.map((col) => {
+              const formattedColumn = {
+                title: col.title,
+                dataIndex: col.data_index || undefined, // Only set dataIndex if it's defined
+                width: col.width ? Number(col.width) : 150, // Ensure width is a number
+                sorter: col.sorter === 'true',
+              };
+
+              // If the column has children, process them recursively
+              if (col.children) {
+                formattedColumn.children = formatColumns(col.children);
+              }
+
+              return formattedColumn;
+            });
+          };
+
+          // Process the headers structure
+          const formattedColumns = res.data.flatMap((item) =>
+            formatColumns(item.headers)
+          );
+
           setColumns(formattedColumns);
           fetchTableData(1, pagination.pageSize, filters); // Fetch data after columns update
         })
@@ -59,20 +100,35 @@ const DataView = () => {
   }, []);
 
   // Fetch paginated table data
-  const fetchTableData = (page, limit, filters) => {
+  const fetchTableData = (page = 1, limit = 10, filters = {}) => {
+    const username = sessionStorage.getItem('username') || ''; // Default username
+    const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD');
+    const endOfMonth = dayjs().endOf('month').format('YYYY-MM-DD');
+
+    const params = {
+      table_name: 'master_data',
+      page,
+      limit,
+      inserted_by: filters.inserted_by ?? username, // Use username if not provided
+      start_date: filters.start_date ?? startOfMonth, // Default to month start
+      end_date: filters.end_date ?? endOfMonth, // Default to month end
+    };
+
     api
-      .get('/master_data', {
-        params: { table_name: tableName, page, limit, ...filters },
-      })
+      .get('/master_data', { params })
       .then((res) => {
-        setData(res.data.rows);
+        const formattedData = res.data.data.map((row) => ({
+          ...row,
+          date: row.date ? new Date(row.date).toDateString() : null, // Convert to YYYY-MM-DD
+        }));
+        setData(formattedData);
         setPagination((prev) => ({
           ...prev,
-          total: res.data.total,
+          total: res.data.totalRows,
           current: page,
         }));
       })
-      .catch((err) => console.error('Error fetching data:', err));
+      .catch((err) => error('Error fetching data:', err));
   };
 
   // Handle table change (pagination, sorting)
@@ -91,16 +147,23 @@ const DataView = () => {
   // Handle date range change
   const handleDateRangeChange = (dates) => {
     if (dates) {
-      handleFilterChange('start_date', dayjs(dates[0]).format('YYYY-MM-DD'));
-      handleFilterChange('end_date', dayjs(dates[1]).format('YYYY-MM-DD'));
+      const updatedFilters = {
+        ...filters,
+        start_date: dayjs(dates[0]).format('YYYY-MM-DD'),
+        end_date: dayjs(dates[1]).format('YYYY-MM-DD'),
+      };
+      setFilters(updatedFilters);
+      fetchTableData(1, pagination.pageSize, updatedFilters);
     } else {
-      handleFilterChange('start_date', null);
-      handleFilterChange('end_date', null);
+      const updatedFilters = { ...filters, start_date: null, end_date: null };
+      setFilters(updatedFilters);
+      fetchTableData(1, pagination.pageSize, updatedFilters);
     }
   };
 
   return (
     <div>
+      {contextHolder}
       {/* Table Selection & Filters */}
       <Form layout="inline" style={{ marginBottom: 20 }}>
         <Form.Item label="Select Table">
@@ -124,6 +187,8 @@ const DataView = () => {
             onChange={(value) => handleFilterChange('inserted_by', value)}
             placeholder="Filter by user"
             style={{ width: 200 }}
+            disabled={!tableName}
+            defaultValue={sessionStorage.getItem('username')}
           >
             {users.map((user) => (
               <Option key={user.id} value={user.username}>
@@ -135,7 +200,15 @@ const DataView = () => {
 
         {/* Date Range Filter */}
         <Form.Item label="Date Range">
-          <RangePicker onChange={handleDateRangeChange} format="YYYY-MM-DD" />
+          <RangePicker
+            onChange={handleDateRangeChange}
+            format="YYYY-MM-DD"
+            defaultValue={[
+              dayjs(dayjs().startOf('month'), dateFormat),
+              dayjs(dayjs().endOf('month'), dateFormat),
+            ]}
+            disabled={!tableName}
+          />
         </Form.Item>
       </Form>
 
@@ -146,6 +219,9 @@ const DataView = () => {
         rowKey={(record) => record.id}
         pagination={pagination}
         onChange={handleTableChange}
+        scroll={{
+          y: 55 * 5,
+        }}
         bordered
       />
     </div>
