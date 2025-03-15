@@ -51,7 +51,8 @@ const Import = () => {
 
     try {
       setLoading(true);
-      const response = await api.post('/upload', formData, {
+      const endpoint = values.file_type === 'csv' ? '/upload/csv' : '/upload';
+      const response = await api.post(endpoint, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -115,6 +116,26 @@ const Import = () => {
           rules={[{ required: true, message: 'Please enter year' }]}
         >
           <Input type="number" placeholder="Enter year" />
+        </Form.Item>
+
+        <Form.Item
+          label="File Type"
+          name="file_type"
+          rules={[{ required: true, message: 'Please select a file type' }]}
+        >
+          <Select
+            defaultValue="xlsx"
+            options={[
+              {
+                value: 'xlsx',
+                label: 'Xlsx',
+              },
+              {
+                value: 'csv',
+                label: 'CSV',
+              },
+            ]}
+          />
         </Form.Item>
 
         {/* Upload Field */}

@@ -106,7 +106,7 @@ const DataView = () => {
     const endOfMonth = dayjs().endOf('month').format('YYYY-MM-DD');
 
     const params = {
-      table_name: 'master_data',
+      table_name: tableName,
       page,
       limit,
       inserted_by: filters.inserted_by ?? username, // Use username if not provided
