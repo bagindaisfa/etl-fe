@@ -67,8 +67,12 @@ const DataView = () => {
                 title: col.title,
                 dataIndex: col.data_index || undefined, // Only set dataIndex if it's defined
                 width: col.width ? Number(col.width) : 150, // Ensure width is a number
-                sorter: col.sorter === 'true',
+                sorter:
+                  col.sorter === 'true'
+                    ? (a, b) => a[col.data_index] - b[col.data_index]
+                    : null,
               };
+              console.log('formattedColumn :', formattedColumn);
 
               // If the column has children, process them recursively
               if (col.children) {
@@ -221,6 +225,9 @@ const DataView = () => {
         onChange={handleTableChange}
         scroll={{
           y: 55 * 5,
+        }}
+        showSorterTooltip={{
+          target: 'sorter-icon',
         }}
         bordered
       />
