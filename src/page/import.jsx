@@ -8,6 +8,7 @@ const Import = () => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [tableNames, setTableNames] = useState([]);
+  const [fileType, setFileType] = useState(null);
 
   const success = (message) => {
     messageApi.open({
@@ -48,6 +49,12 @@ const Import = () => {
     formData.append('table_name', values.table_name);
     formData.append('month', values.month);
     formData.append('year', values.year);
+    if (fileType === 'csv') {
+      formData.append('range_start', values.range_start);
+      formData.append('range_end', values.range_end);
+    } else {
+      formData.append('range', values.range);
+    }
 
     try {
       setLoading(true);
@@ -124,7 +131,7 @@ const Import = () => {
           rules={[{ required: true, message: 'Please select a file type' }]}
         >
           <Select
-            defaultValue="xlsx"
+            placeholder="Please select a file type"
             options={[
               {
                 value: 'xlsx',
@@ -135,8 +142,36 @@ const Import = () => {
                 label: 'CSV',
               },
             ]}
+            onChange={(value) => setFileType(value)}
           />
         </Form.Item>
+        {fileType === 'csv' ? (
+          <>
+            <Form.Item
+              label="Range Start"
+              name="range_start"
+              rules={[{ required: true, message: 'Please enter range start' }]}
+            >
+              <Input type="number" placeholder="Enter start range" min={0} />
+            </Form.Item>
+
+            <Form.Item
+              label="Range End"
+              name="range_end"
+              rules={[{ required: true, message: 'Please enter range end' }]}
+            >
+              <Input type="number" placeholder="Enter end range" min={0} />
+            </Form.Item>
+          </>
+        ) : fileType === 'xlsx' ? (
+          <Form.Item
+            label="Row Number"
+            name="range"
+            rules={[{ required: true, message: 'Please enter row number' }]}
+          >
+            <Input type="number" placeholder="Enter row number" min={0} />
+          </Form.Item>
+        ) : null}
 
         {/* Upload Field */}
         <Form.Item label="Upload File">
