@@ -53,6 +53,7 @@ const Import = () => {
       formData.append('range_start', values.range_start);
       formData.append('range_end', values.range_end);
     } else {
+      formData.append('total_row', values.total_row);
       formData.append('range', values.range);
     }
 
@@ -101,30 +102,6 @@ const Import = () => {
           />
         </Form.Item>
 
-        {/* Month Dropdown */}
-        <Form.Item
-          label="Month"
-          name="month"
-          rules={[{ required: true, message: 'Please select a month' }]}
-        >
-          <Select placeholder="Select month">
-            {Array.from({ length: 12 }, (_, i) => (
-              <Select.Option key={i + 1} value={i + 1}>
-                {new Date(0, i).toLocaleString('default', { month: 'long' })}
-              </Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-
-        {/* Year Input */}
-        <Form.Item
-          label="Year"
-          name="year"
-          rules={[{ required: true, message: 'Please enter year' }]}
-        >
-          <Input type="number" placeholder="Enter year" />
-        </Form.Item>
-
         <Form.Item
           label="File Type"
           name="file_type"
@@ -164,13 +141,34 @@ const Import = () => {
             </Form.Item>
           </>
         ) : fileType === 'xlsx' ? (
-          <Form.Item
-            label="Row Number"
-            name="range"
-            rules={[{ required: true, message: 'Please enter row number' }]}
-          >
-            <Input type="number" placeholder="Enter row number" min={0} />
-          </Form.Item>
+          <>
+            <Form.Item
+              label="Total Row Number"
+              name="total_row"
+              rules={[
+                { required: true, message: 'Please enter total row number' },
+              ]}
+            >
+              <Input
+                type="number"
+                placeholder="Enter total row number"
+                min={0}
+              />
+            </Form.Item>
+            <Form.Item
+              label="Start Row Number"
+              name="range"
+              rules={[
+                { required: true, message: 'Please enter start row number' },
+              ]}
+            >
+              <Input
+                type="number"
+                placeholder="Enter start row number"
+                min={0}
+              />
+            </Form.Item>
+          </>
         ) : null}
 
         {/* Upload Field */}
