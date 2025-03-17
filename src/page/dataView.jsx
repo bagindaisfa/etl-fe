@@ -31,6 +31,7 @@ const DataView = () => {
     start_date: null,
     end_date: null,
   });
+  const [loadingExport, setLoadingExport] = useState(false);
   const dateFormat = 'YYYY-MM-DD';
 
   const success = (message) => {
@@ -72,7 +73,6 @@ const DataView = () => {
                     ? (a, b) => a[col.data_index] - b[col.data_index]
                     : null,
               };
-              console.log('formattedColumn :', formattedColumn);
 
               // If the column has children, process them recursively
               if (col.children) {
@@ -99,7 +99,10 @@ const DataView = () => {
   useEffect(() => {
     api
       .get('/get_users')
-      .then((res) => setUsers(res.data))
+      .then((res) => {
+        const allOption = { id: 'all', username: 'All' }; // Add 'All' option
+        setUsers([allOption, ...res.data]); // Prepend 'All' option to user list
+      })
       .catch((err) => console.error('Error fetching users:', err));
   }, []);
 
@@ -133,6 +136,47 @@ const DataView = () => {
         }));
       })
       .catch((err) => error('Error fetching data:', err));
+  };
+
+  const exportData = (filters = {}) => {
+    setLoadingExport(true);
+    const username = sessionStorage.getItem('username') || ''; // Default username
+    const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD');
+    const endOfMonth = dayjs().endOf('month').format('YYYY-MM-DD');
+
+    const params = {
+      table_name: tableName,
+      inserted_by: filters.inserted_by ?? username,
+      start_date: filters.start_date ?? startOfMonth,
+      end_date: filters.end_date ?? endOfMonth,
+    };
+
+    api
+      .get('/export', {
+        params,
+        responseType: 'blob', // Ensure response is treated as a file
+      })
+      .then((res) => {
+        // Create download link
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute(
+          'download',
+          `${tableName}_${filters.start_date}_${filters.end_date}.xlsx`
+        ); // Use backend filename
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url); // Cleanup
+
+        success('Download successfully!');
+        setLoadingExport(false);
+      })
+      .catch((err) => {
+        error('Error exporting data:', err);
+        setLoadingExport(false);
+      });
   };
 
   // Handle table change (pagination, sorting)
@@ -213,6 +257,16 @@ const DataView = () => {
             ]}
             disabled={!tableName}
           />
+        </Form.Item>
+        <Form.Item>
+          <Button
+            type="primary"
+            loading={loadingExport}
+            onClick={() => exportData(filters)}
+            block
+          >
+            Export
+          </Button>
         </Form.Item>
       </Form>
 
