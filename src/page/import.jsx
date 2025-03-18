@@ -4,6 +4,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import api from '../services/axiosService'; // Ensure axios is properly configured
 
 const Import = () => {
+  const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -47,9 +48,7 @@ const Import = () => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('table_name', values.table_name);
-    formData.append('month', values.month);
-    formData.append('year', values.year);
-    if (fileType === 'csv') {
+    if (fileType === 'csv' || fileType === 'formated_csv') {
       formData.append('range_start', values.range_start);
       formData.append('range_end', values.range_end);
     } else {
@@ -59,13 +58,18 @@ const Import = () => {
 
     try {
       setLoading(true);
-      const endpoint = values.file_type === 'csv' ? '/upload/csv' : '/upload';
+      const endpoint =
+        values.file_type === 'csv'
+          ? '/upload/csv'
+          : values.file_type === 'formated_csv'
+          ? '/upload/csv-formated'
+          : '/upload';
       const response = await api.post(endpoint, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-
-      success('Upload successful!');
-      console.log('Response:', response.data);
+      form.resetFields();
+      setFile(null);
+      success(response.data.message);
     } catch (err) {
       error('Upload failed. Please try again.');
       console.error('Upload error:', err);
@@ -78,6 +82,7 @@ const Import = () => {
     <>
       {contextHolder}
       <Form
+        form={form}
         layout="vertical"
         onFinish={onFinish}
         style={{ maxWidth: 500, margin: 'auto', padding: 20 }}
@@ -118,11 +123,15 @@ const Import = () => {
                 value: 'csv',
                 label: 'CSV',
               },
+              {
+                value: 'formated_csv',
+                label: 'Formated CSV',
+              },
             ]}
             onChange={(value) => setFileType(value)}
           />
         </Form.Item>
-        {fileType === 'csv' ? (
+        {fileType === 'csv' || fileType === 'formated_csv' ? (
           <>
             <Form.Item
               label="Range Start"
