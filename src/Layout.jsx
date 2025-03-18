@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout, Menu, message, Spin } from 'antd';
+import { Layout, Menu, message, Spin, Image } from 'antd';
 import {
   UserOutlined,
   HomeOutlined,
@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from './services/axiosService';
+import core_icon from './assets/core_icon.jpeg';
 
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
@@ -136,7 +137,7 @@ function AppLayout({ children }) {
               padding: 16,
             }}
           >
-            CORE LMB
+            <Image src={core_icon} preview={false} height={60} width={60} />
           </div>
           <Menu
             theme="dark"

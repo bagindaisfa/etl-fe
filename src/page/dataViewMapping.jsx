@@ -63,6 +63,7 @@ const DataViewMapping = () => {
       });
       success('Table headers added successfully');
       form.resetFields();
+      setHasHeader(false);
     } catch (err) {
       error('Failed to add table headers');
       console.error('Add table headers error:', err);
@@ -335,7 +336,6 @@ const DataViewMapping = () => {
                 </div>
               )}
             </Form.List>
-
             <Button
               type="primary"
               htmlType="submit"
