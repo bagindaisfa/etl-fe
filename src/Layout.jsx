@@ -9,7 +9,7 @@ import {
 } from '@ant-design/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from './services/axiosService';
-import core_icon from './assets/core_icon.jpeg';
+import core_icon from './assets/core transparan.png';
 
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
@@ -132,7 +132,7 @@ function AppLayout({ children }) {
             className="logo"
             style={{
               color: 'white',
-              backgroundColor: '#17183a',
+              backgroundColor: 'rgb(221 222 225)',
               textAlign: 'center',
               padding: 16,
             }}
