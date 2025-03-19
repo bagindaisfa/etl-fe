@@ -278,7 +278,7 @@ const DataView = () => {
         pagination={pagination}
         onChange={handleTableChange}
         scroll={{
-          y: 55 * 5,
+          y: 450,
         }}
         showSorterTooltip={{
           target: 'sorter-icon',
