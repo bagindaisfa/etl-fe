@@ -55,6 +55,7 @@ const Import = () => {
       formData.append('total_row', values.total_row);
       formData.append('range', values.range);
     }
+    formData.append('sheet_number', values.sheet_number);
 
     try {
       setLoading(true);
@@ -180,6 +181,13 @@ const Import = () => {
           </>
         ) : null}
 
+        <Form.Item
+          label="Sheet Number"
+          name="sheet_number"
+          rules={[{ required: true, message: 'Please enter sheet number' }]}
+        >
+          <Input type="number" placeholder="Enter sheet number" min={1} />
+        </Form.Item>
         {/* Upload Field */}
         <Form.Item label="Upload File">
           <Upload
